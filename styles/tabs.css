@@ -1,0 +1,478 @@
+.tabs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.tab-card {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 120px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --notch-size: 6px;
+    --notch-distance: 17px;
+    clip-path: 
+        polygon(
+            /* Parte superior - efeito de rasgo mais suave */
+            0% var(--notch-size),
+            calc(var(--notch-distance) * 0.5) 0%, 
+            var(--notch-distance) var(--notch-size), 
+            calc(var(--notch-distance) * 1.5) 0%, 
+            calc(var(--notch-distance) * 2) var(--notch-size), 
+            calc(var(--notch-distance) * 2.5) 0%, 
+            calc(var(--notch-distance) * 3) var(--notch-size), 
+            calc(var(--notch-distance) * 3.5) 0%, 
+            calc(var(--notch-distance) * 4) var(--notch-size), 
+            calc(var(--notch-distance) * 4.5) 0%, 
+            calc(var(--notch-distance) * 5) var(--notch-size), 
+            calc(var(--notch-distance) * 5.5) 0%, 
+            calc(var(--notch-distance) * 6) var(--notch-size), 
+            calc(var(--notch-distance) * 6.5) 0%, 
+            calc(var(--notch-distance) * 7) var(--notch-size), 
+            calc(var(--notch-distance) * 7.5) 0%, 
+            calc(var(--notch-distance) * 8) var(--notch-size), 
+            calc(var(--notch-distance) * 8.5) 0%, 
+            100% var(--notch-size),
+            
+            /* Lateral direita */
+            100% calc(100% - var(--notch-size)),
+            
+            /* Parte inferior - efeito de rasgo mais suave */
+            calc(var(--notch-distance) * 8.5) 100%,
+            calc(var(--notch-distance) * 8) calc(100% - var(--notch-size)),
+            calc(var(--notch-distance) * 7.5) 100%,
+            calc(var(--notch-distance) * 7) calc(100% - var(--notch-size)),
+            calc(var(--notch-distance) * 6.5) 100%,
+            calc(var(--notch-distance) * 6) calc(100% - var(--notch-size)),
+            calc(var(--notch-distance) * 5.5) 100%,
+            calc(var(--notch-distance) * 5) calc(100% - var(--notch-size)),
+            calc(var(--notch-distance) * 4.5) 100%,
+            calc(var(--notch-distance) * 4) calc(100% - var(--notch-size)),
+            calc(var(--notch-distance) * 3.5) 100%,
+            calc(var(--notch-distance) * 3) calc(100% - var(--notch-size)),
+            calc(var(--notch-distance) * 2.5) 100%,
+            calc(var(--notch-distance) * 2) calc(100% - var(--notch-size)),
+            calc(var(--notch-distance) * 1.5) 100%,
+            calc(var(--notch-distance) * 1) calc(100% - var(--notch-size)),
+            calc(var(--notch-distance) * 0.5) 100%,
+            0% calc(100% - var(--notch-size))
+        );
+}
+
+.tab-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+.tab-card:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(108, 43, 217, 0.5), 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+.tab-card.active {
+    border: none;
+    box-shadow: 0 0 0 2px #6c2bd9, 0 12px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+}
+
+.tab-card-open {
+    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+}
+
+.tab-card-closed {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+}
+
+.tab-card-available {
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+}
+
+.tab-number {
+    position: absolute;
+    top: calc(var(--notch-size) + 8px);
+    left: 10px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.tab-name {
+    position: absolute;
+    bottom: calc(var(--notch-size) + 38px);
+    left: 10px;
+    right: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tab-time {
+    position: absolute;
+    top: calc(var(--notch-size) + 10px);
+    right: 10px;
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.tab-amount {
+    position: absolute;
+    bottom: calc(var(--notch-size) + 8px);
+    left: 10px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(100% - 20px);
+}
+
+.tab-items-count {
+    font-size: 12px;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 5px;
+}
+
+.long-open {
+    animation: pulse 2s infinite;
+}
+
+.long-open-indicator {
+    position: absolute;
+    top: calc(var(--notch-size) + 8px);
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+    }
+}
+
+.tab-details {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 16px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.tab-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.tab-details-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tab-details-name {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.tab-details-time {
+    color: #a0aec0;
+    font-size: 14px;
+}
+
+.tab-details-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.tab-items-list {
+    margin-top: 16px;
+    max-height: 400px;
+    overflow-y: auto;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.tab-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s;
+}
+
+.tab-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab-item:last-child {
+    border-bottom: none;
+}
+
+.tab-item-info {
+    flex: 1;
+}
+
+.tab-item-name {
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.tab-item-quantity {
+    color: #a0aec0;
+    font-size: 14px;
+    margin-top: 2px;
+}
+
+.tab-item-price {
+    font-weight: 500;
+    margin-left: 16px;
+}
+
+.tab-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.tab-summary {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding: 10px 15px;
+    background-color: rgba(108, 43, 217, 0.2);
+    border-radius: 8px;
+}
+
+.tab-payment-methods {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.payment-method {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.payment-method:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.payment-method.selected {
+    background-color: #6c2bd9;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 5px rgba(108, 43, 217, 0.3);
+}
+
+.payment-method-icon {
+    margin-right: 6px;
+    font-size: 13px;
+}
+
+.tab-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animação para itens adicionados */
+@keyframes itemAdded {
+    0% {
+        background-color: rgba(56, 161, 105, 0.5);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.item-added {
+    animation: itemAdded 1.5s ease-out;
+}
+
+/* Estilo para arrastar e soltar */
+.drag-over {
+    background-color: rgba(108, 43, 217, 0.3);
+    border: 2px dashed #6c2bd9;
+}
+
+/* Barra de pesquisa na lista de comandas */
+.tabs-search {
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.tabs-search input {
+    padding-left: 36px;
+    width: 100%;
+}
+
+.tabs-search i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+}
+
+/* Filtros rápidos */
+.quick-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.quick-filter {
+    padding: 6px 12px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-filter:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.quick-filter.active {
+    background-color: #6c2bd9;
+}
+
+.payment-method-modern {
+    position: relative;
+    padding: 8px 8px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 70px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.payment-method-modern:hover {
+    background-color: rgba(67, 56, 202, 0.1);
+    transform: translateY(-2px);
+    border-color: rgba(124, 58, 237, 0.3);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+}
+
+@keyframes payment-method-selected {
+    0% {
+        background-size: 100% 0;
+    }
+    100% {
+        background-size: 100% 100%;
+    }
+}
+
+.payment-method-modern.selected {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.8) 0%, rgba(124, 58, 237, 0.8) 100%);
+    border-color: rgba(139, 92, 246, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+    animation: payment-method-selected 0.3s ease-out;
+}
+
+.payment-method-modern .payment-method-icon {
+    font-size: 22px;
+    margin-bottom: 6px;
+    color: #a0aec0;
+    transition: all 0.3s;
+}
+
+.payment-method-modern.selected .payment-method-icon {
+    color: white;
+}
+
+.payment-method-modern .payment-method-label {
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.payment-method-modern.selected .payment-method-label {
+    color: white;
+}
+
+/* Adicionar uma borda pontilhada para reforçar o aspecto de destacável */
+.tab-card::before {
+    content: '';
+    position: absolute;
+    top: var(--notch-size);
+    left: 3px;
+    right: 3px;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.3) 50%, transparent 50%);
+    background-size: 6px 1px;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.tab-card::after {
+    content: '';
+    position: absolute;
+    bottom: var(--notch-size);
+    left: 3px;
+    right: 3px;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.3) 50%, transparent 50%);
+    background-size: 6px 1px;
+    opacity: 0.5;
+    pointer-events: none;
+}
