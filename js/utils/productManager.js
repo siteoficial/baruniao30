@@ -1,9 +1,10 @@
 const ProductManager = {
     STORAGE_KEY: 'products',
-    CATEGORIES_KEY: 'productCategories',
+    CATEGORIES_KEY: 'categories',
     
-    // Estado local para armazenar os produtos em memória
+    // Estado local para armazenar os produtos e categorias em memória
     _products: [],
+    _categories: [],
     _initialized: false,
     
     // Inicialização e configuração dos listeners do Firebase
@@ -27,6 +28,15 @@ const ProductManager = {
                 this._notifyProductsChanged();
             });
             
+            // Configurar listeners para categorias
+            FirebaseManager.listenToCategories(categories => {
+                this._categories = categories;
+                // Manter também no localStorage como backup
+                LocalStorageManager.saveData(this.CATEGORIES_KEY, categories);
+                // Notificar alterações
+                this._notifyProductsChanged();
+            });
+            
             // Marcar como inicializado
             this._initialized = true;
         } catch (error) {
@@ -39,6 +49,7 @@ const ProductManager = {
     // Carrega os dados do localStorage como fallback
     _loadFromLocalStorage: function() {
         this._products = LocalStorageManager.getData(this.STORAGE_KEY, []);
+        this._categories = LocalStorageManager.getData(this.CATEGORIES_KEY, []);
     },
     
     // Sistema de notificação para atualizações em tempo real
@@ -213,6 +224,12 @@ const ProductManager = {
     
     getCategories: function() {
         try {
+            // Primeiro obter categorias do sistema dedicado
+            if (this._categories && this._categories.length > 0) {
+                return this._categories.sort();
+            }
+            
+            // Fallback: extrair categorias dos produtos (compatibilidade com sistema antigo)
             const categories = new Set();
             
             this._products.forEach(product => {
@@ -229,18 +246,52 @@ const ProductManager = {
         }
     },
     
-    addCategory: function(category) {
+    addCategory: async function(category) {
+        try {
+            if (!category || !category.trim()) return false;
+            
+            const categories = this.getCategories();
+            if (categories.includes(category)) {
+                return true; // A categoria já existe
+            }
+            
+            // Salvar no Firebase
+            if (FirebaseManager.initializeFirebase()) {
+                await FirebaseManager.saveCategory(category);
+            } else {
+                // Fallback para localStorage
+                const updatedCategories = [...this._categories, category];
+                LocalStorageManager.saveData(this.CATEGORIES_KEY, updatedCategories);
+                this._categories = updatedCategories;
+                this._notifyProductsChanged(); // Reutilizamos este notificador
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Erro ao adicionar categoria:', error);
+            reportError(error);
+            return false;
+        }
+    },
+    
+    deleteCategory: async function(category) {
         try {
             if (!category) return false;
             
-            const categories = this.getCategories();
-            if (!categories.includes(category)) {
-                // As categorias são derivadas dos produtos, apenas atualizamos os dados do produto
-                return true;
+            // Excluir do Firebase
+            if (FirebaseManager.initializeFirebase()) {
+                await FirebaseManager.deleteCategory(category);
+            } else {
+                // Fallback para localStorage
+                const filteredCategories = this._categories.filter(cat => cat !== category);
+                LocalStorageManager.saveData(this.CATEGORIES_KEY, filteredCategories);
+                this._categories = filteredCategories;
+                this._notifyProductsChanged(); // Reutilizamos este notificador
             }
-            return false;
+            
+            return true;
         } catch (error) {
-            console.error('Erro ao adicionar categoria:', error);
+            console.error('Erro ao excluir categoria:', error);
             reportError(error);
             return false;
         }

@@ -6,6 +6,9 @@ function ProductsPage() {
         const [toasts, setToasts] = React.useState([]);
         const [showCategoryManager, setShowCategoryManager] = React.useState(false);
         const [categories, setCategories] = React.useState([]);
+        const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
+        const [productToDelete, setProductToDelete] = React.useState(null);
+        const [deleteConfirmationContent, setDeleteConfirmationContent] = React.useState(null);
         
         // Carrega os produtos e configura os listeners para atualizações em tempo real
         React.useEffect(() => {
@@ -44,20 +47,59 @@ function ProductsPage() {
         };
         
         const handleDeleteProduct = async (product) => {
-            if (window.confirm(`Tem certeza que deseja excluir o produto "${product.name}"?`)) {
-                const success = await ProductManager.deleteProduct(product.id);
-                
-                if (success) {
-                    showToast({
-                        message: `Produto "${product.name}" excluído com sucesso!`,
-                        type: 'success'
-                    });
-                } else {
-                    showToast({
-                        message: 'Erro ao excluir produto.',
-                        type: 'error'
-                    });
-                }
+            showDeleteConfirmation(product);
+        };
+        
+        const showDeleteConfirmation = (product) => {
+            const confirmationContent = (
+                <div className="confirmation-dialog">
+                    <div className="mb-4">
+                        <i className="fas fa-exclamation-triangle text-yellow-500 text-3xl mb-2"></i>
+                        <p className="text-lg font-medium">
+                            Você está prestes a excluir <span className="font-bold">{product.name}</span>
+                        </p>
+                        <p className="text-gray-600 mt-2">
+                            Esta ação não poderá ser desfeita.
+                        </p>
+                    </div>
+                    <div className="flex justify-end space-x-3 mt-4">
+                        <button 
+                            className="btn btn-outline"
+                            onClick={() => setDeleteConfirmationOpen(false)}
+                        >
+                            Cancelar
+                        </button>
+                        <button 
+                            className="btn btn-danger"
+                            onClick={() => confirmDeleteProduct(product)}
+                        >
+                            <i className="fas fa-trash-alt mr-2"></i>
+                            Excluir
+                        </button>
+                    </div>
+                </div>
+            );
+            
+            setProductToDelete(product);
+            setDeleteConfirmationContent(confirmationContent);
+            setDeleteConfirmationOpen(true);
+        };
+        
+        const confirmDeleteProduct = async (product) => {
+            setDeleteConfirmationOpen(false);
+            
+            const success = await ProductManager.deleteProduct(product.id);
+            
+            if (success) {
+                showToast({
+                    message: `Produto "${product.name}" excluído com sucesso!`,
+                    type: 'success'
+                });
+            } else {
+                showToast({
+                    message: 'Erro ao excluir produto.',
+                    type: 'error'
+                });
             }
         };
         
@@ -104,20 +146,22 @@ function ProductsPage() {
             setEditingProduct(null);
         };
         
-        const handleAddCategory = (category) => {
+        const handleAddCategory = async (category) => {
             if (!categories.includes(category)) {
-                // Como as categorias são derivadas dos produtos, adicionamos como um produto exemplo
-                // Isso será melhorado mais tarde para ter um gerenciamento dedicado de categorias no Firebase
-                ProductManager.createProduct({
-                    name: `Exemplo - ${category}`,
-                    price: 0,
-                    category: category
-                });
+                // Usar o novo sistema de categorias independentes
+                const success = await ProductManager.addCategory(category);
                 
-                showToast({
-                    message: `Categoria "${category}" adicionada com sucesso!`,
-                    type: 'success'
-                });
+                if (success) {
+                    showToast({
+                        message: `Categoria "${category}" adicionada com sucesso!`,
+                        type: 'success'
+                    });
+                } else {
+                    showToast({
+                        message: 'Erro ao adicionar categoria.',
+                        type: 'error'
+                    });
+                }
             }
         };
         
@@ -128,6 +172,9 @@ function ProductsPage() {
             for (const product of productsToUpdate) {
                 await ProductManager.updateProduct(product.id, { category: '' });
             }
+            
+            // Excluir a categoria após lidar com os produtos
+            await ProductManager.deleteCategory(category);
             
             showToast({
                 message: `Categoria "${category}" removida com sucesso!`,
@@ -218,6 +265,17 @@ function ProductsPage() {
                 
                 {/* Toast Notifications */}
                 <ToastContainer toasts={toasts} removeToast={removeToast} />
+                
+                {/* Delete Confirmation Modal */}
+                {deleteConfirmationOpen && (
+                    <Modal
+                        isOpen={deleteConfirmationOpen}
+                        onClose={() => setDeleteConfirmationOpen(false)}
+                        title="Confirmação de exclusão"
+                    >
+                        {deleteConfirmationContent}
+                    </Modal>
+                )}
             </div>
         );
     } catch (error) {

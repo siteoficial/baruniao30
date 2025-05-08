@@ -3,6 +3,9 @@ function Dashboard() {
         const [todayStats, setTodayStats] = React.useState(null);
         const [openTabs, setOpenTabs] = React.useState([]);
         const [topProducts, setTopProducts] = React.useState([]);
+        const [salesChartData, setSalesChartData] = React.useState([]);
+        const chartRef = React.useRef(null);
+        const chartInstance = React.useRef(null);
         
         React.useEffect(() => {
             // Get today's stats
@@ -24,7 +27,103 @@ function Dashboard() {
                 const top = productReport.products.slice(0, 5);
                 setTopProducts(top);
             }
+
+            // Get last 7 days sales data
+            const lastWeekSalesData = [];
+            for (let i = 6; i >= 0; i--) {
+                const day = new Date();
+                day.setDate(day.getDate() - i);
+                
+                const dailyReport = ReportManager.getDailySalesReport(day);
+                const totalSales = dailyReport ? dailyReport.totalSales : 0;
+                
+                lastWeekSalesData.push({
+                    date: formatDate(day),
+                    sales: totalSales
+                });
+            }
+            setSalesChartData(lastWeekSalesData);
         }, []);
+
+        React.useEffect(() => {
+            if (salesChartData.length > 0 && chartRef.current) {
+                // Destroy previous chart if exists
+                if (chartInstance.current) {
+                    chartInstance.current.destroy();
+                }
+                
+                const ctx = chartRef.current.getContext('2d');
+                
+                // Create the chart
+                chartInstance.current = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: salesChartData.map(item => item.date),
+                        datasets: [{
+                            label: 'Vendas (R$)',
+                            data: salesChartData.map(item => item.sales),
+                            backgroundColor: 'rgba(108, 43, 217, 0.2)',
+                            borderColor: 'rgba(108, 43, 217, 1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: 'rgba(108, 43, 217, 1)',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'R$ ' + value.toLocaleString('pt-BR');
+                                    },
+                                    color: '#9ca3af'
+                                },
+                                grid: {
+                                    color: 'rgba(156, 163, 175, 0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#9ca3af'
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'R$ ' + context.raw.toLocaleString('pt-BR', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Cleanup function
+            return () => {
+                if (chartInstance.current) {
+                    chartInstance.current.destroy();
+                }
+            };
+        }, [salesChartData]);
         
         const getPaymentMethodLabel = (method) => {
             const methods = {
@@ -60,6 +159,15 @@ function Dashboard() {
                     <div data-name="stat-card" className="card bg-gray-800">
                         <div className="text-sm text-gray-400">Comandas Abertas</div>
                         <div className="text-2xl font-bold mt-1">{openTabs.length}</div>
+                    </div>
+                </div>
+
+                <div data-name="sales-chart-section" className="mb-6">
+                    <h2 className="text-xl font-semibold mb-4">Vendas dos Últimos 7 Dias</h2>
+                    <div data-name="sales-chart" className="card bg-gray-800 p-4">
+                        <div style={{ height: '250px' }}>
+                            <canvas ref={chartRef}></canvas>
+                        </div>
                     </div>
                 </div>
                 

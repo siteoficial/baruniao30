@@ -1,4 +1,4 @@
-function Header({ onNavigate, currentPage }) {
+function Header({ onNavigate, currentPage, showBackButton }) {
     try {
         const menuItems = [
             { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-chart-line' },
@@ -51,6 +51,10 @@ function Header({ onNavigate, currentPage }) {
             setIsMobileMenuOpen(false);
             onNavigate(pageId);
         };
+
+        const handleGoBack = () => {
+            window.history.back();
+        };
         
         return (
             <div 
@@ -62,32 +66,58 @@ function Header({ onNavigate, currentPage }) {
                 {/* Desktop header */}
                 <div data-name="desktop-header" className="hidden md:flex justify-between items-center px-6 py-3">
                     <div data-name="logo" className="flex items-center">
+                        {showBackButton ? (
+                            <button 
+                                onClick={handleGoBack}
+                                className="mr-3 text-gray-300 hover:text-white"
+                                title="Voltar"
+                            >
+                                <i className="fas fa-arrow-left"></i>
+                            </button>
+                        ) : null}
                         <i className="fas fa-glass-cheers text-2xl text-purple-500 mr-2"></i>
-                        <h1 className="text-xl font-bold text-white">Sistema de Comandas</h1>
+                        <h1 className="text-xl font-bold text-white">{showBackButton ? (typeof title === 'string' ? title : 'Voltar') : 'Sistema de Comandas'}</h1>
                     </div>
                     
-                    <nav data-name="desktop-nav" className="flex-1 ml-10">
-                        <ul className="flex space-x-2">
-                            {menuItems.map(item => (
-                                <li key={item.id} data-name={`nav-item-${item.id}`} className="flex-1 max-w-[150px]">
-                                    <button 
-                                        onClick={() => handleNavigate(item.id)}
-                                        className={`flex items-center justify-center w-full px-3 py-2 rounded-md transition-colors ${
-                                            currentPage === item.id 
-                                                ? 'bg-purple-700 text-white' 
-                                                : 'text-gray-300 hover:bg-gray-700'
-                                        }`}
-                                        aria-current={currentPage === item.id ? 'page' : undefined}
-                                    >
-                                        <i className={`${item.icon} mr-2`}></i>
-                                        <span>{item.label}</span>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
+                    {!showBackButton && (
+                        <nav data-name="desktop-nav" className="flex-1 ml-10">
+                            <ul className="flex space-x-2">
+                                {menuItems.map(item => (
+                                    <li key={item.id} data-name={`nav-item-${item.id}`} className="flex-1 max-w-[150px]">
+                                        <button 
+                                            onClick={() => handleNavigate(item.id)}
+                                            className={`flex items-center justify-center w-full px-3 py-2 rounded-md transition-colors ${
+                                                currentPage === item.id 
+                                                    ? 'bg-purple-700 text-white' 
+                                                    : 'text-gray-300 hover:bg-gray-700'
+                                            }`}
+                                            aria-current={currentPage === item.id ? 'page' : undefined}
+                                        >
+                                            <i className={`${item.icon} mr-2`}></i>
+                                            <span>{item.label}</span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+                    )}
                     
                     <div className="flex items-center ml-4">
+                        {!showBackButton && (
+                            <button
+                                onClick={() => handleNavigate('settings')}
+                                className={`flex items-center px-3 py-2 rounded-md transition-colors mr-4 ${
+                                    currentPage === 'settings' 
+                                        ? 'bg-purple-700 text-white' 
+                                        : 'text-gray-300 hover:bg-gray-700'
+                                }`}
+                                title="Configurações"
+                            >
+                                <i className="fas fa-cog"></i>
+                                <span className="ml-2">Configurações</span>
+                            </button>
+                        )}
+                        
                         <div className="relative" data-name="user-menu">
                             <button className="flex items-center text-sm font-medium text-gray-300 hover:text-white focus:outline-none">
                                 <span className="sr-only">Opções do usuário</span>
@@ -110,8 +140,17 @@ function Header({ onNavigate, currentPage }) {
                 {/* Mobile header */}
                 <div data-name="mobile-header" className="md:hidden flex justify-between items-center px-4 py-3">
                     <div data-name="mobile-logo" className="flex items-center">
+                        {showBackButton ? (
+                            <button 
+                                onClick={handleGoBack}
+                                className="mr-3 text-gray-300 hover:text-white"
+                                title="Voltar"
+                            >
+                                <i className="fas fa-arrow-left"></i>
+                            </button>
+                        ) : null}
                         <i className="fas fa-glass-cheers text-xl text-purple-500 mr-2"></i>
-                        <h1 className="text-lg font-bold text-white">Sistema de Comandas</h1>
+                        <h1 className="text-lg font-bold text-white">{showBackButton ? (typeof title === 'string' ? title : 'Voltar') : 'Sistema de Comandas'}</h1>
                     </div>
                     
                     <button 
@@ -150,6 +189,22 @@ function Header({ onNavigate, currentPage }) {
                                     </button>
                                 </li>
                             ))}
+
+                            {/* Item de Configurações na versão mobile */}
+                            <li data-name="mobile-nav-item-settings" className="mb-1">
+                                <button 
+                                    onClick={() => handleNavigate('settings')}
+                                    className={`w-full flex items-center px-3 py-2 rounded-md transition-colors ${
+                                        currentPage === 'settings' 
+                                            ? 'bg-purple-700 text-white' 
+                                            : 'text-gray-300 hover:bg-gray-700'
+                                    }`}
+                                    aria-current={currentPage === 'settings' ? 'page' : undefined}
+                                >
+                                    <i className="fas fa-cog w-6"></i>
+                                    <span>Configurações</span>
+                                </button>
+                            </li>
                         </ul>
                     </nav>
                 )}

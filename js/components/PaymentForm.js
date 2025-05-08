@@ -471,6 +471,17 @@ function PaymentForm({ tab, onSubmit, onCancel }) {
                                     Confirmar
                                 </button>
                             </div>
+                            <div className="mt-3 text-center">
+                                <button 
+                                    type="button" 
+                                    className="text-green-400 hover:text-green-300 text-sm flex items-center transition-colors mx-auto"
+                                    onClick={handlePrint}
+                                    disabled={isPrinting}
+                                >
+                                    <i className={`fas fa-${isPrinting ? 'spinner fa-spin' : 'print'} mr-1`}></i>
+                                    {isPrinting ? 'Imprimindo...' : 'Imprimir comanda'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

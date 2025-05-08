@@ -174,6 +174,42 @@ const FirebaseManager = {
         });
     },
 
+    // Funções para categorias
+    saveCategory: async function(category) {
+        try {
+            if (!category || !category.trim()) return false;
+            await firebaseDb.ref(`categories/${category}`).set({
+                name: category,
+                createdAt: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            console.error("Erro ao salvar categoria:", error);
+            return false;
+        }
+    },
+
+    deleteCategory: async function(category) {
+        try {
+            if (!category) return false;
+            await firebaseDb.ref(`categories/${category}`).remove();
+            return true;
+        } catch (error) {
+            console.error("Erro ao excluir categoria:", error);
+            return false;
+        }
+    },
+
+    listenToCategories: function(callback) {
+        firebaseDb.ref('categories').on('value', snapshot => {
+            const categories = [];
+            snapshot.forEach(childSnapshot => {
+                categories.push(childSnapshot.val().name);
+            });
+            callback(categories);
+        });
+    },
+
     // Contador de comandas
     getNextTabNumber: async function() {
         try {
@@ -407,6 +443,76 @@ const FirebaseManager = {
             return true;
         } catch (error) {
             console.error('Erro ao sincronizar histórico de comandas fechadas:', error);
+            return false;
+        }
+    },
+
+    // Funções para gerenciar configurações do sistema
+    getSettings: async function() {
+        try {
+            if (firebaseDb) {
+                const snapshot = await firebaseDb.ref('settings').once('value');
+                return snapshot.val() || null;
+            }
+            return null;
+        } catch (error) {
+            console.error('Erro ao obter configurações do Firebase:', error);
+            return null;
+        }
+    },
+    
+    updateSettings: async function(settings) {
+        try {
+            if (!firebaseDb) {
+                console.error("Firebase Database não inicializado");
+                return false;
+            }
+            
+            await firebaseDb.ref('settings').update(settings);
+            return true;
+        } catch (error) {
+            console.error('Erro ao atualizar configurações no Firebase:', error);
+            return false;
+        }
+    },
+    
+    syncSettingsToLocal: async function() {
+        try {
+            if (!firebaseDb || typeof SettingsManager === 'undefined') {
+                return false;
+            }
+            
+            const snapshot = await firebaseDb.ref('settings').once('value');
+            const remoteSettings = snapshot.val();
+            
+            if (remoteSettings) {
+                SettingsManager.updateSettings(remoteSettings);
+                return true;
+            }
+            
+            return false;
+        } catch (error) {
+            console.error('Erro ao sincronizar configurações do Firebase:', error);
+            return false;
+        }
+    },
+    
+    syncSettingsFromLocal: async function() {
+        try {
+            if (!firebaseDb || typeof SettingsManager === 'undefined') {
+                return false;
+            }
+            
+            const localSettings = SettingsManager.getSettings();
+            
+            if (localSettings) {
+                await this.updateSettings(localSettings);
+                return true;
+            }
+            
+            return false;
+        } catch (error) {
+            console.error('Erro ao enviar configurações para o Firebase:', error);
             return false;
         }
     },

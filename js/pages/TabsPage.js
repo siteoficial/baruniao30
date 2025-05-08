@@ -65,7 +65,11 @@ function TabsPage() {
                 console.log('Criando nova comanda com dados:', formData);
                 setIsCreatingTab(true);
                 
-                const newTab = await TabManager.createTab(formData.customerName);
+                // Usar o número de comanda específico se fornecido pelo formData (modo predefinido)
+                const newTab = await TabManager.createTab(
+                    formData.customerName,
+                    formData.tabNumber
+                );
                 
                 if (newTab) {
                     // Garantir que a nova comanda tenha um array items inicializado
@@ -74,6 +78,10 @@ function TabsPage() {
                         // Atualizar a comanda no TabManager
                         await TabManager.updateTab(newTab.id, { items: [] });
                     }
+                    
+                    // Garantir que a lista de comandas seja atualizada
+                    const updatedTabs = TabManager.getOpenTabs();
+                    setTabs(updatedTabs);
                     
                     setSelectedTabId(newTab.id);
                     setShowNewTabForm(false);
@@ -84,6 +92,12 @@ function TabsPage() {
                         message: `Comanda #${newTab.number} criada com sucesso!`,
                         type: 'success'
                     });
+                    
+                    // Emitir evento customizado para notificar outros componentes sobre a criação da comanda
+                    const event = new CustomEvent('tabCreated', { 
+                        detail: { tabNumber: newTab.number } 
+                    });
+                    window.dispatchEvent(event);
                 } else {
                     showToast({
                         message: 'Erro ao criar comanda.',

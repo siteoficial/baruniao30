@@ -100,6 +100,18 @@ function App() {
                         setSyncStatus('Sincronizando dados...');
                         await FirebaseManager.syncLocalToFirebase();
                         
+                        // Sincronizar configurações do sistema
+                        if (typeof SettingsManager !== 'undefined') {
+                            console.log("Sincronizando configurações...");
+                            // Primeiro tentar obter configurações do Firebase
+                            const remoteSettings = await FirebaseManager.syncSettingsToLocal();
+                            
+                            if (!remoteSettings) {
+                                // Se não houver configurações no Firebase, enviar as locais
+                                await FirebaseManager.syncSettingsFromLocal();
+                            }
+                        }
+                        
                         setSyncStatus('Conectado em tempo real');
                         setTimeout(() => setSyncStatus(''), 3000);
                     } else {
@@ -135,6 +147,8 @@ function App() {
                     return <HistoryPage />;
                 case 'reports':
                     return <ReportsPage />;
+                case 'settings':
+                    return <SettingsPage />;
                 default:
                     return <TabsPage />;
             }

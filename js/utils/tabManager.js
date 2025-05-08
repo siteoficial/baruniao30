@@ -2,7 +2,8 @@ const TabManager = {
     STORAGE_KEYS: {
         OPEN_TABS: 'openTabs',
         CLOSED_TABS: 'closedTabs',
-        TAB_COUNTER: 'tabCounter'
+        TAB_COUNTER: 'tabCounter',
+        USED_PREDEFINED_NUMBERS: 'usedPredefinedNumbers'
     },
     
     // Estado local para armazenar as comandas em memória
@@ -162,9 +163,40 @@ const TabManager = {
     
     getNextTabNumber: async function() {
         try {
-            // Usar o Firebase para obter o próximo número
+            // Verificar se o SettingsManager está disponível
+            if (typeof SettingsManager === 'undefined') {
+                console.warn('SettingsManager não disponível. Usando modo automático.');
+                // Fallback para o comportamento padrão
+                return await this._getNextAutoTabNumber();
+            }
+            
+            // Obter configurações de numeração
+            const settings = SettingsManager.getTabNumberingSettings();
+            
+            if (settings.mode === 'predefined') {
+                // Usar numeração predefinida
+                return this._getNextPredefinedTabNumber();
+            } else {
+                // Usar numeração automática
+                return await this._getNextAutoTabNumber();
+            }
+        } catch (error) {
+            console.error('Erro ao obter próximo número de comanda:', error);
+            reportError(error);
+            // Fallback para timestamp como número de comanda em caso de erro
+            return Date.now();
+        }
+    },
+    
+    // Obtém o próximo número de comanda no modo automático
+    _getNextAutoTabNumber: async function() {
+        try {
+            // Tentar usar o Firebase primeiro
             if (FirebaseManager.initializeFirebase()) {
-                return await FirebaseManager.getNextTabNumber();
+                const nextNumber = await FirebaseManager.getNextTabNumber();
+                if (nextNumber) {
+                    return nextNumber;
+                }
             }
             
             // Fallback para localStorage
@@ -173,19 +205,76 @@ const TabManager = {
             LocalStorageManager.saveData(this.STORAGE_KEYS.TAB_COUNTER, nextCounter);
             return nextCounter;
         } catch (error) {
-            console.error('Erro ao obter próximo número de comanda:', error);
-            reportError(error);
+            console.error('Erro ao obter próximo número automático de comanda:', error);
             return Date.now();
         }
     },
     
-    createTab: async function(customerName) {
+    // Obtém o próximo número de comanda no modo predefinido
+    _getNextPredefinedTabNumber: function() {
         try {
-            const tabNumber = await this.getNextTabNumber();
+            // Obter a lista de números predefinidos
+            const settings = SettingsManager.getTabNumberingSettings();
+            const predefinedNumbers = settings.predefinedNumbers || [];
+            
+            if (predefinedNumbers.length === 0) {
+                console.warn('Não há números predefinidos. Usando modo automático.');
+                return this._getNextAutoTabNumber();
+            }
+            
+            // Obter a lista de números já usados
+            const usedNumbers = LocalStorageManager.getData(this.STORAGE_KEYS.USED_PREDEFINED_NUMBERS, []);
+            
+            // Obter números em uso nas comandas abertas
+            const numbersInUse = this._openTabs.map(tab => tab.number);
+            
+            // Encontrar o primeiro número disponível
+            const availableNumber = predefinedNumbers.find(num => 
+                !numbersInUse.includes(num) && !usedNumbers.includes(num)
+            );
+            
+            if (availableNumber) {
+                // Marcar o número como usado
+                LocalStorageManager.saveData(
+                    this.STORAGE_KEYS.USED_PREDEFINED_NUMBERS,
+                    [...usedNumbers, availableNumber]
+                );
+                return availableNumber;
+            }
+            
+            // Se todos os números estiverem em uso, limpar o registro e retornar o primeiro
+            console.warn('Todos os números predefinidos estão em uso. Reiniciando a sequência.');
+            LocalStorageManager.saveData(this.STORAGE_KEYS.USED_PREDEFINED_NUMBERS, []);
+            return predefinedNumbers[0];
+        } catch (error) {
+            console.error('Erro ao obter próximo número predefinido de comanda:', error);
+            return this._getNextAutoTabNumber();
+        }
+    },
+    
+    createTab: async function(customerName, tabNumber) {
+        try {
+            // Se o número da comanda não foi fornecido, obter o próximo número disponível
+            const number = tabNumber || await this.getNextTabNumber();
+            
+            // Se foi fornecido um número específico, marcar como usado no sistema de numeração predefinida
+            if (tabNumber && typeof SettingsManager !== 'undefined') {
+                const settings = SettingsManager.getTabNumberingSettings();
+                if (settings.mode === 'predefined') {
+                    const usedNumbers = LocalStorageManager.getData(this.STORAGE_KEYS.USED_PREDEFINED_NUMBERS, []);
+                    if (!usedNumbers.includes(tabNumber)) {
+                        LocalStorageManager.saveData(
+                            this.STORAGE_KEYS.USED_PREDEFINED_NUMBERS,
+                            [...usedNumbers, tabNumber]
+                        );
+                    }
+                }
+            }
+            
             const newTab = {
                 id: generateId(),
-                number: tabNumber,
-                customerName: customerName || `Cliente ${tabNumber}`,
+                number: number,
+                customerName: customerName || `Cliente ${number}`,
                 items: [],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
