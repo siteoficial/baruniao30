@@ -44,48 +44,53 @@ function TabCard({ tab, isSelected, onClick }) {
                 tabIndex={0}
                 onKeyPress={(e) => e.key === 'Enter' && handleClick()}
             >
-                <div data-name="tab-number" className="tab-number">
-                    {tab ? tab.number : ''}
+                <div className="tab-card-inner">
+                    <div data-name="tab-number" className="tab-number">
+                        {tab ? tab.number : ''}
+                    </div>
+                    
+                    {tab && (
+                        <React.Fragment>
+                            <div data-name="tab-name" className="tab-name" title={tab.customerName}>
+                                {tab.customerName}
+                            </div>
+                            <div data-name="tab-time" className="tab-time" title="Tempo aberta">
+                                {tab.status === 'open' ? (
+                                    <React.Fragment>
+                                        <i className="fas fa-clock mr-1"></i> {getTimeOpen()}
+                                    </React.Fragment>
+                                ) : null}
+                            </div>
+                            <div data-name="tab-amount" className="tab-amount">
+                                {getTabTotal()}
+                                {tab.items && tab.items.length > 0 && (
+                                    <span className="tab-items-count" title={`${tab.items.length} itens`}>
+                                        {tab.items.length} <i className="fas fa-utensils"></i>
+                                    </span>
+                                )}
+                            </div>
+                        </React.Fragment>
+                    )}
+                    
+                    {!tab && (
+                        <div data-name="tab-available" className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center">
+                                <i className="fas fa-plus-circle text-white opacity-70 text-3xl mb-2"></i>
+                                <div className="text-sm font-medium opacity-90">Nova Comanda</div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Indicador visual para comandas abertas há muito tempo */}
+                    {tab && tab.status === 'open' && isLongOpen() && (
+                        <div data-name="long-open-indicator" className="long-open-indicator" title="Comanda aberta há mais de 2 horas">
+                            <i className="fas fa-exclamation-triangle"></i>
+                        </div>
+                    )}
                 </div>
                 
-                {tab && (
-                    <React.Fragment>
-                        <div data-name="tab-name" className="tab-name" title={tab.customerName}>
-                            {tab.customerName}
-                        </div>
-                        <div data-name="tab-time" className="tab-time" title="Tempo aberta">
-                            {tab.status === 'open' ? (
-                                <React.Fragment>
-                                    <i className="fas fa-clock mr-1"></i> {getTimeOpen()}
-                                </React.Fragment>
-                            ) : null}
-                        </div>
-                        <div data-name="tab-amount" className="tab-amount">
-                            {getTabTotal()}
-                            {tab.items && tab.items.length > 0 && (
-                                <span className="tab-items-count" title={`${tab.items.length} itens`}>
-                                    {tab.items.length} <i className="fas fa-utensils"></i>
-                                </span>
-                            )}
-                        </div>
-                    </React.Fragment>
-                )}
-                
-                {!tab && (
-                    <div data-name="tab-available" className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center">
-                            <i className="fas fa-plus text-white opacity-50 text-2xl mb-2"></i>
-                            <div className="text-sm opacity-70">Nova Comanda</div>
-                        </div>
-                    </div>
-                )}
-                
-                {/* Indicador visual para comandas abertas há muito tempo */}
-                {tab && tab.status === 'open' && isLongOpen() && (
-                    <div data-name="long-open-indicator" className="long-open-indicator" title="Comanda aberta há mais de 2 horas">
-                        <i className="fas fa-exclamation-triangle"></i>
-                    </div>
-                )}
+                {/* Adicionar efeito de reflexo/brilho */}
+                <div className="tab-card-shine"></div>
             </div>
         );
     } catch (error) {

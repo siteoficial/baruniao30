@@ -161,7 +161,17 @@ function App() {
                         <i className="fas fa-sync fa-spin mr-2"></i>
                         Sistema de Comandas
                     </div>
-                    <div className="text-gray-400">{syncStatus}</div>
+                    <div className="text-gray-400 mb-4">{syncStatus}</div>
+                    <button 
+                        className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md transition"
+                        onClick={() => {
+                            setIsInitialized(true);
+                            // Mantém o processo de conexão em segundo plano
+                            setSyncStatus('Conectando em segundo plano...');
+                        }}
+                    >
+                        Pular e continuar
+                    </button>
                 </div>
             );
         }
